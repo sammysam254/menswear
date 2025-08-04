@@ -12,6 +12,7 @@ import Footer from '@/components/Footer';
 import OrderManagement from '@/components/admin/OrderManagement';
 import UserManagement from '@/components/admin/UserManagement';
 import PaymentManagement from '@/components/admin/PaymentManagement';
+import ProductManagement from '@/components/admin/ProductManagement';
 
 interface Order {
   id: string;
@@ -167,18 +168,22 @@ const AdminPage = () => {
 
         {/* Admin Tabs */}
         <Tabs defaultValue="orders" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="orders" className="flex items-center gap-2">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-1">
+            <TabsTrigger value="orders" className="flex items-center gap-2 text-xs md:text-sm">
               <ShoppingCart className="h-4 w-4" />
-              Orders
+              <span className="hidden sm:inline">Orders</span>
             </TabsTrigger>
-            <TabsTrigger value="users" className="flex items-center gap-2">
+            <TabsTrigger value="users" className="flex items-center gap-2 text-xs md:text-sm">
               <Users className="h-4 w-4" />
-              Users
+              <span className="hidden sm:inline">Users</span>
             </TabsTrigger>
-            <TabsTrigger value="payments" className="flex items-center gap-2">
+            <TabsTrigger value="payments" className="flex items-center gap-2 text-xs md:text-sm">
               <CreditCard className="h-4 w-4" />
-              Payments
+              <span className="hidden sm:inline">Payments</span>
+            </TabsTrigger>
+            <TabsTrigger value="products" className="flex items-center gap-2 text-xs md:text-sm">
+              <Package className="h-4 w-4" />
+              <span className="hidden sm:inline">Products</span>
             </TabsTrigger>
           </TabsList>
           
@@ -196,6 +201,10 @@ const AdminPage = () => {
           
           <TabsContent value="payments" className="mt-6">
             <PaymentManagement />
+          </TabsContent>
+          
+          <TabsContent value="products" className="mt-6">
+            <ProductManagement />
           </TabsContent>
         </Tabs>
       </div>
