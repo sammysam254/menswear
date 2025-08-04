@@ -1,7 +1,7 @@
 import { createContext, useContext, useReducer, ReactNode } from 'react';
 
 export interface CartItem {
-  id: number;
+  id: string; // Changed from number to string to support UUIDs
   name: string;
   price: number;
   image: string;
@@ -17,8 +17,8 @@ interface CartState {
 
 type CartAction = 
   | { type: 'ADD_ITEM'; payload: Omit<CartItem, 'quantity'> & { quantity?: number } }
-  | { type: 'REMOVE_ITEM'; payload: number }
-  | { type: 'UPDATE_QUANTITY'; payload: { id: number; quantity: number } }
+  | { type: 'REMOVE_ITEM'; payload: string }
+  | { type: 'UPDATE_QUANTITY'; payload: { id: string; quantity: number } }
   | { type: 'CLEAR_CART' };
 
 const CartContext = createContext<{

@@ -10,14 +10,14 @@ import Footer from '@/components/Footer';
 const CartPage = () => {
   const { state, dispatch } = useCart();
 
-  const updateQuantity = (id: number, quantity: number) => {
+  const updateQuantity = (id: string, quantity: number) => {
     dispatch({
       type: 'UPDATE_QUANTITY',
       payload: { id, quantity }
     });
   };
 
-  const removeItem = (id: number) => {
+  const removeItem = (id: string) => {
     dispatch({
       type: 'REMOVE_ITEM',
       payload: id

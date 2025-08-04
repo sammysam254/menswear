@@ -88,10 +88,10 @@ const CheckoutPage = () => {
 
       if (orderError) throw orderError;
 
-      // Create order items
+      // Create order items  
       const orderItems = state.items.map(item => ({
         order_id: orderData.id,
-        product_id: item.id, // Keep as the converted number for now
+        product_id: item.id, // Now using UUID string directly
         product_name: item.name,
         price: item.price,
         quantity: item.quantity,

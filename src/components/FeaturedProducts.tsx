@@ -70,7 +70,7 @@ const FeaturedProducts = () => {
     dispatch({
       type: 'ADD_ITEM',
       payload: {
-        id: parseInt(product.id.slice(-8), 16), // Convert UUID to number for cart compatibility
+        id: product.id, // Use the UUID directly as string
         name: product.name,
         price: Number(product.price),
         image: primaryImage || '/placeholder.svg'
