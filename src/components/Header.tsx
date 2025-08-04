@@ -6,12 +6,14 @@ import { ShoppingCart, Menu, X, Search, User, LogOut } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useUserRole } from '@/hooks/useUserRole';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { state } = useCart();
   const { user, signOut } = useAuth();
   const { toast } = useToast();
+  const { isAdmin } = useUserRole();
 
   const handleSignOut = async () => {
     await signOut();
@@ -35,7 +37,7 @@ const Header = () => {
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link to="/">
-              <h1 className="text-2xl font-bold text-primary hover:text-accent transition-colors">WearWell</h1>
+              <h1 className="text-2xl font-bold text-primary hover:text-accent transition-colors">Menswear</h1>
             </Link>
           </div>
 
@@ -60,6 +62,13 @@ const Header = () => {
             
             {user ? (
               <div className="flex items-center gap-2">
+                {isAdmin && (
+                  <Link to="/admin">
+                    <Button variant="outline" size="sm">
+                      Admin
+                    </Button>
+                  </Link>
+                )}
                 <span className="text-sm text-muted-foreground hidden sm:block">
                   {user.email}
                 </span>

@@ -149,9 +149,11 @@ const CartPage = () => {
                 </div>
               </div>
               
-              <Button className="w-full bg-primary hover:bg-primary/90" size="lg">
-                Proceed to Checkout
-              </Button>
+              <Link to="/checkout">
+                <Button className="w-full bg-primary hover:bg-primary/90" size="lg">
+                  Proceed to Checkout
+                </Button>
+              </Link>
               
               <p className="text-xs text-muted-foreground text-center mt-4">
                 Free shipping on orders over $100
