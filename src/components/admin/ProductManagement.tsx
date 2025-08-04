@@ -11,6 +11,14 @@ import { Switch } from "@/components/ui/switch";
 import { Trash2, Edit, Plus, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
+interface ProductImage {
+  id: string;
+  product_id: string;
+  image_url: string;
+  is_primary: boolean;
+  display_order: number;
+}
+
 interface Product {
   id: string;
   name: string;
@@ -26,6 +34,7 @@ interface Product {
   is_featured: boolean;
   created_at: string;
   updated_at: string;
+  product_images?: ProductImage[];
 }
 
 export default function ProductManagement() {
@@ -58,7 +67,16 @@ export default function ProductManagement() {
     try {
       const { data, error } = await supabase
         .from("products")
-        .select("*")
+        .select(`
+          *,
+          product_images (
+            id,
+            product_id,
+            image_url,
+            is_primary,
+            display_order
+          )
+        `)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -75,54 +93,127 @@ export default function ProductManagement() {
     }
   };
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>, productId?: string) => {
-    const file = event.target.files?.[0];
-    if (!file) return null;
+  const handleMultipleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>, productId: string) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
 
     setUploading(true);
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random()}.${fileExt}`;
-      const filePath = `${fileName}`;
+      const uploadPromises = Array.from(files).map(async (file, index) => {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}-${Math.random()}.${fileExt}`;
+        const filePath = `${fileName}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from('product-images')
-        .upload(filePath, file);
+        const { error: uploadError } = await supabase.storage
+          .from('product-images')
+          .upload(filePath, file);
 
-      if (uploadError) throw uploadError;
+        if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('product-images')
-        .getPublicUrl(filePath);
+        const { data: { publicUrl } } = supabase.storage
+          .from('product-images')
+          .getPublicUrl(filePath);
 
-      // If we're editing an existing product, update it immediately
-      if (productId) {
-        const { error: updateError } = await supabase
-          .from("products")
-          .update({ image_url: publicUrl })
-          .eq("id", productId);
+        // Check if this is the first image to set as primary
+        const { data: existingImages } = await supabase
+          .from('product_images')
+          .select('id')
+          .eq('product_id', productId);
 
-        if (updateError) throw updateError;
-        
-        toast({
-          title: "Success",
-          description: "Product image updated successfully",
-        });
-        
-        fetchProducts();
-      }
+        const isPrimary = !existingImages || existingImages.length === 0 ? index === 0 : false;
 
-      return publicUrl;
+        // Insert into product_images table
+        const { error: insertError } = await supabase
+          .from('product_images')
+          .insert({
+            product_id: productId,
+            image_url: publicUrl,
+            is_primary: isPrimary,
+            display_order: index
+          });
+
+        if (insertError) throw insertError;
+
+        // Update the main product table with the first image URL for backward compatibility
+        if (isPrimary) {
+          await supabase
+            .from('products')
+            .update({ image_url: publicUrl })
+            .eq('id', productId);
+        }
+
+        return publicUrl;
+      });
+
+      await Promise.all(uploadPromises);
+      
+      toast({
+        title: "Success",
+        description: `${files.length} images uploaded successfully`,
+      });
+      
+      fetchProducts();
     } catch (error) {
-      console.error("Error uploading image:", error);
+      console.error("Error uploading images:", error);
       toast({
         title: "Error",
-        description: "Failed to upload image",
+        description: "Failed to upload images",
         variant: "destructive",
       });
-      return null;
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleDeleteImage = async (imageId: string, productId: string) => {
+    try {
+      const { error } = await supabase
+        .from('product_images')
+        .delete()
+        .eq('id', imageId);
+
+      if (error) throw error;
+
+      // Update primary image if needed
+      const { data: remainingImages } = await supabase
+        .from('product_images')
+        .select('*')
+        .eq('product_id', productId)
+        .order('display_order');
+
+      if (remainingImages && remainingImages.length > 0) {
+        // Set first remaining image as primary
+        await supabase
+          .from('product_images')
+          .update({ is_primary: true })
+          .eq('id', remainingImages[0].id);
+
+        // Update main product table
+        await supabase
+          .from('products')
+          .update({ image_url: remainingImages[0].image_url })
+          .eq('id', productId);
+      } else {
+        // No images left, clear main product image
+        await supabase
+          .from('products')
+          .update({ image_url: null })
+          .eq('id', productId);
+      }
+
+      toast({
+        title: "Success",
+        description: "Image deleted successfully",
+      });
+      
+      fetchProducts();
+    } catch (error) {
+      console.error("Error deleting image:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete image",
+        variant: "destructive",
+      });
     }
   };
 
@@ -404,8 +495,41 @@ export default function ProductManagement() {
               </div>
             </CardHeader>
             <CardContent className="flex-1 flex flex-col">
-              <div className="relative mb-3">
-                {product.image_url ? (
+              {/* Multiple Images Display */}
+              <div className="mb-3">
+                {product.product_images && product.product_images.length > 0 ? (
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-2 gap-2">
+                      {product.product_images.slice(0, 4).map((img, index) => (
+                        <div key={img.id} className="relative">
+                          <img
+                            src={img.image_url}
+                            alt={`${product.name} ${index + 1}`}
+                            className="w-full h-20 object-cover rounded-md"
+                          />
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleDeleteImage(img.id, product.id)}
+                            className="absolute top-1 right-1 h-6 w-6 p-0"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                          {img.is_primary && (
+                            <span className="absolute bottom-1 left-1 bg-primary text-primary-foreground px-1 py-0.5 rounded text-xs">
+                              Primary
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    {product.product_images.length > 4 && (
+                      <p className="text-xs text-muted-foreground text-center">
+                        +{product.product_images.length - 4} more images
+                      </p>
+                    )}
+                  </div>
+                ) : product.image_url ? (
                   <img
                     src={product.image_url}
                     alt={product.name}
@@ -413,26 +537,30 @@ export default function ProductManagement() {
                   />
                 ) : (
                   <div className="w-full h-40 bg-gray-200 rounded-md flex items-center justify-center">
-                    <span className="text-gray-500 text-sm">No Image</span>
+                    <span className="text-gray-500 text-sm">No Images</span>
                   </div>
                 )}
-                <div className="absolute top-2 right-2">
+                
+                {/* Upload Multiple Images */}
+                <div className="mt-2">
                   <label className="cursor-pointer">
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={(e) => handleImageUpload(e, product.id)}
+                      multiple
+                      onChange={(e) => handleMultipleImageUpload(e, product.id)}
                       className="hidden"
                       disabled={uploading}
                     />
                     <Button
                       size="sm"
-                      variant="secondary"
-                      className="h-8 w-8 p-0"
+                      variant="outline"
+                      className="w-full"
                       disabled={uploading}
                       type="button"
                     >
-                      <Upload className="h-3 w-3" />
+                      <Upload className="h-4 w-4 mr-2" />
+                      {uploading ? "Uploading..." : "Upload Images"}
                     </Button>
                   </label>
                 </div>
@@ -497,12 +625,36 @@ export default function ProductManagement() {
           </DialogHeader>
           {selectedProduct && (
             <div className="space-y-4">
-              {selectedProduct.image_url && (
+              {/* Display all images */}
+              {selectedProduct.product_images && selectedProduct.product_images.length > 0 ? (
+                <div className="space-y-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    {selectedProduct.product_images.map((img, index) => (
+                      <div key={img.id} className="relative">
+                        <img
+                          src={img.image_url}
+                          alt={`${selectedProduct.name} ${index + 1}`}
+                          className="w-full h-32 object-cover rounded-md"
+                        />
+                        {img.is_primary && (
+                          <span className="absolute top-1 left-1 bg-primary text-primary-foreground px-1 py-0.5 rounded text-xs">
+                            Primary
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : selectedProduct.image_url ? (
                 <img
                   src={selectedProduct.image_url}
                   alt={selectedProduct.name}
                   className="w-full h-48 object-cover rounded-md"
                 />
+              ) : (
+                <div className="w-full h-48 bg-gray-200 rounded-md flex items-center justify-center">
+                  <span className="text-gray-500">No Images</span>
+                </div>
               )}
               <div className="space-y-2">
                 <div><strong>Price:</strong> KES {selectedProduct.price}</div>
