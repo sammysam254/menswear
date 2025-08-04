@@ -62,6 +62,11 @@ const Header = () => {
             
             {user ? (
               <div className="flex items-center gap-2">
+                <Link to="/orders" className="hidden sm:block">
+                  <Button variant="outline" size="sm">
+                    My Orders
+                  </Button>
+                </Link>
                 {isAdmin && (
                   <Link to="/admin">
                     <Button variant="outline" size="sm">
@@ -123,6 +128,15 @@ const Header = () => {
                   {category.name}
                 </Link>
               ))}
+              {user && (
+                <Link
+                  to="/orders"
+                  className="block py-2 text-foreground hover:text-accent transition-colors duration-200 font-medium"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  My Orders
+                </Link>
+              )}
             </nav>
           </div>
         )}

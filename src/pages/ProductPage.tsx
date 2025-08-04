@@ -1,14 +1,30 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Star, Heart, ShoppingCart, ArrowLeft } from 'lucide-react';
-import { getProductById } from '@/data/products';
+import { supabase } from '@/integrations/supabase/client';
 import { useCart } from '@/contexts/CartContext';
 import { useToast } from '@/hooks/use-toast';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  description: string;
+  category: string;
+  size: string;
+  color: string;
+  rating: number;
+  stock_quantity: number;
+  brand: string;
+  image_url: string;
+  is_featured: boolean;
+  created_at: string;
+}
 
 const ProductPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -16,11 +32,49 @@ const ProductPage = () => {
   const { dispatch } = useCart();
   const { toast } = useToast();
   
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
   const [selectedSize, setSelectedSize] = useState<string>('');
   const [selectedColor, setSelectedColor] = useState<string>('');
   const [quantity, setQuantity] = useState(1);
 
-  const product = id ? getProductById(parseInt(id)) : null;
+  useEffect(() => {
+    if (id) {
+      fetchProduct();
+    }
+  }, [id]);
+
+  const fetchProduct = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+      setProduct(data);
+    } catch (error) {
+      console.error('Error fetching product:', error);
+      setProduct(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-primary mb-4">Loading product...</h1>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   if (!product) {
     return (
@@ -40,23 +94,14 @@ const ProductPage = () => {
   }
 
   const handleAddToCart = () => {
-    if (!selectedSize && product.sizes.length > 0) {
-      toast({
-        title: "Please select a size",
-        description: "You need to select a size before adding to cart.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     dispatch({
       type: 'ADD_ITEM',
       payload: {
         id: product.id,
         name: product.name,
-        price: product.price,
-        image: product.image,
-        size: selectedSize,
+        price: Number(product.price),
+        image: product.image_url || '/placeholder.svg',
+        size: selectedSize || product.size || '',
         quantity
       }
     });
@@ -81,7 +126,7 @@ const ProductPage = () => {
       <div className="container mx-auto px-4 py-8">
         <nav className="text-sm text-muted-foreground mb-6">
           <Link to="/" className="hover:text-primary">Home</Link> / 
-          <Link to={`/category/${product.category}`} className="hover:text-primary"> {categoryNames[product.category]}</Link> / 
+          <Link to={`/category/${product.category}`} className="hover:text-primary"> {categoryNames[product.category] || product.category}</Link> / 
           {product.name}
         </nav>
 
@@ -98,7 +143,7 @@ const ProductPage = () => {
           {/* Product Image */}
           <div className="aspect-square bg-secondary/50 rounded-lg overflow-hidden">
             <img
-              src={product.image}
+              src={product.image_url || '/placeholder.svg'}
               alt={product.name}
               className="w-full h-full object-cover"
             />
@@ -109,13 +154,13 @@ const ProductPage = () => {
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <Badge className="bg-accent text-accent-foreground">
-                  {categoryNames[product.category]}
+                  {categoryNames[product.category] || product.category}
                 </Badge>
-                {product.isNew && (
-                  <Badge className="bg-primary text-primary-foreground">New</Badge>
+                {product.is_featured && (
+                  <Badge className="bg-primary text-primary-foreground">Featured</Badge>
                 )}
-                {product.originalPrice && (
-                  <Badge variant="destructive">Sale</Badge>
+                {product.brand && (
+                  <Badge variant="outline">{product.brand}</Badge>
                 )}
               </div>
               
@@ -127,7 +172,7 @@ const ProductPage = () => {
                     <Star
                       key={i}
                       className={`h-5 w-5 ${
-                        i < Math.floor(product.rating)
+                        i < Math.floor(Number(product.rating) || 0)
                           ? 'text-accent fill-current'
                           : 'text-gray-300'
                       }`}
@@ -135,19 +180,14 @@ const ProductPage = () => {
                   ))}
                 </div>
                 <span className="text-sm text-muted-foreground">
-                  {product.rating} ({product.reviews} reviews)
+                  {Number(product.rating || 0).toFixed(1)} rating
                 </span>
               </div>
 
               <div className="flex items-center gap-3 mb-4">
                 <span className="text-3xl font-bold text-primary">
-                  KES {product.price}
+                  KES {Number(product.price).toFixed(2)}
                 </span>
-                {product.originalPrice && (
-                  <span className="text-xl text-muted-foreground line-through">
-                    KES {product.originalPrice}
-                  </span>
-                )}
               </div>
             </div>
 
@@ -158,38 +198,22 @@ const ProductPage = () => {
             </div>
 
             {/* Color Selection */}
-            {product.colors.length > 0 && (
+            {product.color && (
               <div>
                 <h3 className="font-semibold text-primary mb-3">Color</h3>
-                <div className="flex gap-2">
-                  {product.colors.map((color) => (
-                    <Button
-                      key={color}
-                      variant={selectedColor === color ? "default" : "outline"}
-                      onClick={() => setSelectedColor(color)}
-                      className="min-w-20"
-                    >
-                      {color}
-                    </Button>
-                  ))}
-                </div>
+                <Badge variant="outline" className="text-base px-4 py-2">
+                  {product.color}
+                </Badge>
               </div>
             )}
 
             {/* Size Selection */}
-            {product.sizes.length > 0 && (
+            {product.size && (
               <div>
                 <h3 className="font-semibold text-primary mb-3">Size</h3>
-                <Select value={selectedSize} onValueChange={setSelectedSize}>
-                  <SelectTrigger className="w-32">
-                    <SelectValue placeholder="Select size" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {product.sizes.map((size) => (
-                      <SelectItem key={size} value={size}>{size}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Badge variant="outline" className="text-base px-4 py-2">
+                  {product.size}
+                </Badge>
               </div>
             )}
 
@@ -226,8 +250,8 @@ const ProductPage = () => {
             {/* Stock Status */}
             <div className="p-4 bg-secondary/30 rounded-lg">
               <p className="text-sm text-muted-foreground">
-                {product.inStock ? (
-                  <span className="text-green-600 font-medium">✓ In Stock</span>
+                {product.stock_quantity > 0 ? (
+                  <span className="text-green-600 font-medium">✓ In Stock ({product.stock_quantity} available)</span>
                 ) : (
                   <span className="text-red-600 font-medium">✗ Out of Stock</span>
                 )}
