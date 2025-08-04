@@ -131,6 +131,17 @@ const Footer = () => {
           </div>
         </div>
       </div>
+      
+      {/* Moving Text Banner */}
+      <div className="bg-green-600 py-2 overflow-hidden">
+        <div className="animate-marquee whitespace-nowrap text-white text-sm font-medium">
+          this website is designed and developed by sam, contact us at email; sammdev.ai@gmail.com, phone 0707116562 
+          &nbsp;&nbsp;&nbsp;•&nbsp;&nbsp;&nbsp; 
+          this website is designed and developed by sam, contact us at email; sammdev.ai@gmail.com, phone 0707116562 
+          &nbsp;&nbsp;&nbsp;•&nbsp;&nbsp;&nbsp;
+          this website is designed and developed by sam, contact us at email; sammdev.ai@gmail.com, phone 0707116562
+        </div>
+      </div>
     </footer>
   );
 };
