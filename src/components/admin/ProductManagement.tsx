@@ -95,24 +95,40 @@ export default function ProductManagement() {
 
   const handleMultipleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>, productId: string) => {
     const files = event.target.files;
-    if (!files || files.length === 0) return;
+    console.log("Upload triggered, files:", files?.length);
+    
+    if (!files || files.length === 0) {
+      console.log("No files selected");
+      return;
+    }
 
     setUploading(true);
+    console.log("Starting upload process...");
+    
     try {
       const uploadPromises = Array.from(files).map(async (file, index) => {
+        console.log(`Processing file ${index + 1}:`, file.name, file.type, file.size);
+        
         const fileExt = file.name.split('.').pop();
         const fileName = `${Date.now()}-${Math.random()}.${fileExt}`;
         const filePath = `${fileName}`;
 
+        console.log("Uploading to storage:", filePath);
         const { error: uploadError } = await supabase.storage
           .from('product-images')
           .upload(filePath, file);
 
-        if (uploadError) throw uploadError;
+        if (uploadError) {
+          console.error("Storage upload error:", uploadError);
+          throw uploadError;
+        }
 
+        console.log("File uploaded successfully, getting public URL...");
         const { data: { publicUrl } } = supabase.storage
           .from('product-images')
           .getPublicUrl(filePath);
+
+        console.log("Public URL:", publicUrl);
 
         // Check if this is the first image to set as primary
         const { data: existingImages } = await supabase
@@ -543,24 +559,33 @@ export default function ProductManagement() {
                 
                 {/* Upload Multiple Images */}
                 <div className="mt-2">
-                  <label className="cursor-pointer">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      multiple
-                      onChange={(e) => handleMultipleImageUpload(e, product.id)}
-                      className="hidden"
-                      disabled={uploading}
-                    />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={(e) => {
+                      console.log("File input onChange triggered");
+                      handleMultipleImageUpload(e, product.id);
+                      // Reset the input value to allow selecting the same file again
+                      e.target.value = '';
+                    }}
+                    className="hidden"
+                    disabled={uploading}
+                    id={`file-upload-${product.id}`}
+                  />
+                  <label htmlFor={`file-upload-${product.id}`} className="cursor-pointer">
                     <Button
                       size="sm"
                       variant="outline"
                       className="w-full"
                       disabled={uploading}
                       type="button"
+                      asChild
                     >
-                      <Upload className="h-4 w-4 mr-2" />
-                      {uploading ? "Uploading..." : "Upload Images"}
+                      <span>
+                        <Upload className="h-4 w-4 mr-2" />
+                        {uploading ? "Uploading..." : "Upload Images"}
+                      </span>
                     </Button>
                   </label>
                 </div>
