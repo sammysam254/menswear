@@ -110,10 +110,10 @@ const CartPage = () => {
                             ))}
                           </SelectContent>
                         </Select>
-                        <span className="text-muted-foreground">× ${item.price}</span>
+                        <span className="text-muted-foreground">× KES {item.price}</span>
                       </div>
                       <div className="font-semibold text-primary">
-                        ${(item.price * item.quantity).toFixed(2)}
+                        KES {(item.price * item.quantity).toFixed(2)}
                       </div>
                     </div>
                   </div>
@@ -130,7 +130,7 @@ const CartPage = () => {
               <div className="space-y-2 mb-4">
                 <div className="flex justify-between">
                   <span>Subtotal ({state.itemCount} items)</span>
-                  <span>${state.total.toFixed(2)}</span>
+                  <span>KES {state.total.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Shipping</span>
@@ -138,14 +138,14 @@ const CartPage = () => {
                 </div>
                 <div className="flex justify-between">
                   <span>Tax</span>
-                  <span>${(state.total * 0.08).toFixed(2)}</span>
+                  <span>KES {(state.total * 0.08).toFixed(2)}</span>
                 </div>
               </div>
               
               <div className="border-t pt-4 mb-6">
                 <div className="flex justify-between text-lg font-bold">
                   <span>Total</span>
-                  <span>${(state.total * 1.08).toFixed(2)}</span>
+                  <span>KES {(state.total * 1.08).toFixed(2)}</span>
                 </div>
               </div>
               
@@ -156,7 +156,7 @@ const CartPage = () => {
               </Link>
               
               <p className="text-xs text-muted-foreground text-center mt-4">
-                Free shipping on orders over $100
+                Free shipping on orders over KES 10,000
               </p>
             </Card>
           </div>

@@ -173,7 +173,7 @@ const AdminPage = () => {
               <DollarSign className="h-8 w-8 text-green-500" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-muted-foreground">Revenue</p>
-                <p className="text-2xl font-bold">${stats.totalRevenue.toFixed(2)}</p>
+                <p className="text-2xl font-bold">KES {stats.totalRevenue.toFixed(2)}</p>
               </div>
             </div>
           </Card>
@@ -224,7 +224,7 @@ const AdminPage = () => {
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold">${Number(order.total_amount).toFixed(2)}</p>
+                      <p className="font-bold">KES {Number(order.total_amount).toFixed(2)}</p>
                       <div className="flex items-center gap-2 mt-2">
                         <Badge className={getStatusColor(order.status)}>
                           {order.status}
@@ -256,7 +256,7 @@ const AdminPage = () => {
                           <span>
                             {item.product_name} {item.size && `(Size: ${item.size})`} × {item.quantity}
                           </span>
-                          <span>${(Number(item.price) * item.quantity).toFixed(2)}</span>
+                          <span>KES {(Number(item.price) * item.quantity).toFixed(2)}</span>
                         </div>
                       ))}
                     </div>

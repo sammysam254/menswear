@@ -122,11 +122,11 @@ const CategoryPage = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="text-lg font-bold text-primary">
-                      ${product.price}
+                      KES {product.price}
                     </span>
                     {product.originalPrice && (
                       <span className="text-sm text-muted-foreground line-through">
-                        ${product.originalPrice}
+                        KES {product.originalPrice}
                       </span>
                     )}
                   </div>
