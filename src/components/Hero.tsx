@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import heroImage from '@/assets/hero-image.jpg';
 
@@ -27,16 +28,20 @@ const Hero = () => {
             Discover premium men's fashion. From sophisticated jackets to comfortable essentials, find your perfect look.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
-            <Button size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground font-semibold px-8 py-6 text-lg">
-              Shop Collection
-            </Button>
-            <Button 
-              variant="outline" 
-              size="lg" 
-              className="border-white text-white hover:bg-white hover:text-primary font-semibold px-8 py-6 text-lg"
-            >
-              New Arrivals
-            </Button>
+            <Link to="/category/shoes">
+              <Button size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground font-semibold px-8 py-6 text-lg">
+                Shop Collection
+              </Button>
+            </Link>
+            <Link to="/category/jackets">
+              <Button 
+                variant="outline" 
+                size="lg" 
+                className="border-white text-white hover:bg-white hover:text-primary font-semibold px-8 py-6 text-lg"
+              >
+                New Arrivals
+              </Button>
+            </Link>
           </div>
         </div>
       </div>

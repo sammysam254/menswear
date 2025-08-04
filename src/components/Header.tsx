@@ -1,15 +1,19 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { ShoppingCart, Menu, X, Search, User } from 'lucide-react';
+import { useCart } from '@/contexts/CartContext';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { state } = useCart();
 
   const categories = [
-    { name: 'Shoes', href: '#shoes' },
-    { name: 'Jeans', href: '#jeans' },
-    { name: 'Jackets', href: '#jackets' },
-    { name: 'Shorts', href: '#shorts' },
+    { name: 'Shoes', href: '/category/shoes' },
+    { name: 'Jeans', href: '/category/jeans' },
+    { name: 'Jackets', href: '/category/jackets' },
+    { name: 'Shorts', href: '/category/shorts' },
   ];
 
   return (
@@ -18,19 +22,21 @@ const Header = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <h1 className="text-2xl font-bold text-primary">WearWell</h1>
+            <Link to="/">
+              <h1 className="text-2xl font-bold text-primary hover:text-accent transition-colors">WearWell</h1>
+            </Link>
           </div>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex space-x-8">
             {categories.map((category) => (
-              <a
+              <Link
                 key={category.name}
-                href={category.href}
+                to={category.href}
                 className="text-foreground hover:text-accent transition-colors duration-200 font-medium"
               >
                 {category.name}
-              </a>
+              </Link>
             ))}
           </nav>
 
@@ -42,9 +48,18 @@ const Header = () => {
             <Button variant="ghost" size="icon">
               <User className="h-5 w-5" />
             </Button>
-            <Button variant="ghost" size="icon">
-              <ShoppingCart className="h-5 w-5" />
-            </Button>
+            <Link to="/cart">
+              <Button variant="ghost" size="icon" className="relative">
+                <ShoppingCart className="h-5 w-5" />
+                {state.itemCount > 0 && (
+                  <Badge 
+                    className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs bg-accent text-accent-foreground"
+                  >
+                    {state.itemCount}
+                  </Badge>
+                )}
+              </Button>
+            </Link>
             
             {/* Mobile menu button */}
             <Button
@@ -63,14 +78,14 @@ const Header = () => {
           <div className="md:hidden py-4 border-t border-border">
             <nav className="space-y-2">
               {categories.map((category) => (
-                <a
+                <Link
                   key={category.name}
-                  href={category.href}
+                  to={category.href}
                   className="block py-2 text-foreground hover:text-accent transition-colors duration-200 font-medium"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {category.name}
-                </a>
+                </Link>
               ))}
             </nav>
           </div>
