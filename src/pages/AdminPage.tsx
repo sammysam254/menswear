@@ -1,16 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Package, Users, ShoppingCart, DollarSign } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Package, Users, ShoppingCart, DollarSign, CreditCard } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useToast } from '@/hooks/use-toast';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import OrderManagement from '@/components/admin/OrderManagement';
+import UserManagement from '@/components/admin/UserManagement';
+import PaymentManagement from '@/components/admin/PaymentManagement';
 
 interface Order {
   id: string;
@@ -100,43 +101,6 @@ const AdminPage = () => {
     }
   };
 
-  const updateOrderStatus = async (orderId: string, newStatus: string) => {
-    try {
-      const { error } = await supabase
-        .from('orders')
-        .update({ status: newStatus })
-        .eq('id', orderId);
-
-      if (error) throw error;
-
-      setOrders(orders.map(order => 
-        order.id === orderId ? { ...order, status: newStatus } : order
-      ));
-
-      toast({
-        title: "Success",
-        description: "Order status updated successfully",
-      });
-    } catch (error) {
-      console.error('Error updating order status:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update order status",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'pending': return 'bg-yellow-500';
-      case 'processing': return 'bg-blue-500';
-      case 'shipped': return 'bg-purple-500';
-      case 'delivered': return 'bg-green-500';
-      case 'cancelled': return 'bg-red-500';
-      default: return 'bg-gray-500';
-    }
-  };
 
   if (roleLoading) {
     return <div className="min-h-screen bg-background flex items-center justify-center">Loading...</div>;
@@ -201,71 +165,39 @@ const AdminPage = () => {
           </Card>
         </div>
 
-        {/* Orders Table */}
-        <Card className="p-6">
-          <h2 className="text-xl font-bold text-primary mb-4">Recent Orders</h2>
+        {/* Admin Tabs */}
+        <Tabs defaultValue="orders" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="orders" className="flex items-center gap-2">
+              <ShoppingCart className="h-4 w-4" />
+              Orders
+            </TabsTrigger>
+            <TabsTrigger value="users" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Users
+            </TabsTrigger>
+            <TabsTrigger value="payments" className="flex items-center gap-2">
+              <CreditCard className="h-4 w-4" />
+              Payments
+            </TabsTrigger>
+          </TabsList>
           
-          {loading ? (
-            <div className="text-center py-8">Loading orders...</div>
-          ) : orders.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">No orders found</div>
-          ) : (
-            <div className="space-y-4">
-              {orders.map((order) => (
-                <div key={order.id} className="border rounded-lg p-4">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h3 className="font-semibold">Order #{order.id.slice(0, 8)}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        User ID: {order.user_id.slice(0, 8)}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {new Date(order.created_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold">KES {Number(order.total_amount).toFixed(2)}</p>
-                      <div className="flex items-center gap-2 mt-2">
-                        <Badge className={getStatusColor(order.status)}>
-                          {order.status}
-                        </Badge>
-                        <Select
-                          value={order.status}
-                          onValueChange={(value) => updateOrderStatus(order.id, value)}
-                        >
-                          <SelectTrigger className="w-32">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="pending">Pending</SelectItem>
-                            <SelectItem value="processing">Processing</SelectItem>
-                            <SelectItem value="shipped">Shipped</SelectItem>
-                            <SelectItem value="delivered">Delivered</SelectItem>
-                            <SelectItem value="cancelled">Cancelled</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="border-t pt-4">
-                    <h4 className="font-medium mb-2">Items:</h4>
-                    <div className="space-y-2">
-                      {order.order_items.map((item) => (
-                        <div key={item.id} className="flex justify-between items-center text-sm">
-                          <span>
-                            {item.product_name} {item.size && `(Size: ${item.size})`} × {item.quantity}
-                          </span>
-                          <span>KES {(Number(item.price) * item.quantity).toFixed(2)}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </Card>
+          <TabsContent value="orders" className="mt-6">
+            <OrderManagement 
+              orders={orders} 
+              onOrderUpdate={setOrders} 
+              loading={loading} 
+            />
+          </TabsContent>
+          
+          <TabsContent value="users" className="mt-6">
+            <UserManagement />
+          </TabsContent>
+          
+          <TabsContent value="payments" className="mt-6">
+            <PaymentManagement />
+          </TabsContent>
+        </Tabs>
       </div>
       
       <Footer />
