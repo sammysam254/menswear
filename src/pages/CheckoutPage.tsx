@@ -21,9 +21,9 @@ const CheckoutPage = () => {
     email: '',
     address: '',
     city: '',
-    state: '',
+    county: 'Nairobi',
     zipCode: '',
-    country: 'US'
+    country: 'Kenya'
   });
   const [paymentMethod, setPaymentMethod] = useState('credit-card');
   
@@ -37,7 +37,7 @@ const CheckoutPage = () => {
   };
 
   const validateForm = () => {
-    const required = ['firstName', 'lastName', 'email', 'address', 'city', 'state', 'zipCode'];
+    const required = ['firstName', 'lastName', 'email', 'address', 'city', 'county', 'zipCode'];
     return required.every(field => shippingInfo[field as keyof typeof shippingInfo].trim() !== '');
   };
 
@@ -206,33 +206,81 @@ const CheckoutPage = () => {
 
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div>
-                  <Label htmlFor="city">City *</Label>
+                  <Label htmlFor="city">City/Town *</Label>
                   <Input
                     id="city"
                     value={shippingInfo.city}
                     onChange={(e) => handleInputChange('city', e.target.value)}
-                    placeholder="New York"
+                    placeholder="Nairobi"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="state">State *</Label>
-                  <Input
-                    id="state"
-                    value={shippingInfo.state}
-                    onChange={(e) => handleInputChange('state', e.target.value)}
-                    placeholder="NY"
-                  />
+                  <Label htmlFor="county">County *</Label>
+                  <Select value={shippingInfo.county} onValueChange={(value) => handleInputChange('county', value)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-48 overflow-y-auto">
+                      <SelectItem value="Baringo">Baringo</SelectItem>
+                      <SelectItem value="Bomet">Bomet</SelectItem>
+                      <SelectItem value="Bungoma">Bungoma</SelectItem>
+                      <SelectItem value="Busia">Busia</SelectItem>
+                      <SelectItem value="Elgeyo-Marakwet">Elgeyo-Marakwet</SelectItem>
+                      <SelectItem value="Embu">Embu</SelectItem>
+                      <SelectItem value="Garissa">Garissa</SelectItem>
+                      <SelectItem value="Homa Bay">Homa Bay</SelectItem>
+                      <SelectItem value="Isiolo">Isiolo</SelectItem>
+                      <SelectItem value="Kajiado">Kajiado</SelectItem>
+                      <SelectItem value="Kakamega">Kakamega</SelectItem>
+                      <SelectItem value="Kericho">Kericho</SelectItem>
+                      <SelectItem value="Kiambu">Kiambu</SelectItem>
+                      <SelectItem value="Kilifi">Kilifi</SelectItem>
+                      <SelectItem value="Kirinyaga">Kirinyaga</SelectItem>
+                      <SelectItem value="Kisii">Kisii</SelectItem>
+                      <SelectItem value="Kisumu">Kisumu</SelectItem>
+                      <SelectItem value="Kitui">Kitui</SelectItem>
+                      <SelectItem value="Kwale">Kwale</SelectItem>
+                      <SelectItem value="Laikipia">Laikipia</SelectItem>
+                      <SelectItem value="Lamu">Lamu</SelectItem>
+                      <SelectItem value="Machakos">Machakos</SelectItem>
+                      <SelectItem value="Makueni">Makueni</SelectItem>
+                      <SelectItem value="Mandera">Mandera</SelectItem>
+                      <SelectItem value="Marsabit">Marsabit</SelectItem>
+                      <SelectItem value="Meru">Meru</SelectItem>
+                      <SelectItem value="Migori">Migori</SelectItem>
+                      <SelectItem value="Mombasa">Mombasa</SelectItem>
+                      <SelectItem value="Murang'a">Murang'a</SelectItem>
+                      <SelectItem value="Nairobi">Nairobi</SelectItem>
+                      <SelectItem value="Nakuru">Nakuru</SelectItem>
+                      <SelectItem value="Nandi">Nandi</SelectItem>
+                      <SelectItem value="Narok">Narok</SelectItem>
+                      <SelectItem value="Nyamira">Nyamira</SelectItem>
+                      <SelectItem value="Nyandarua">Nyandarua</SelectItem>
+                      <SelectItem value="Nyeri">Nyeri</SelectItem>
+                      <SelectItem value="Samburu">Samburu</SelectItem>
+                      <SelectItem value="Siaya">Siaya</SelectItem>
+                      <SelectItem value="Taita-Taveta">Taita-Taveta</SelectItem>
+                      <SelectItem value="Tana River">Tana River</SelectItem>
+                      <SelectItem value="Tharaka-Nithi">Tharaka-Nithi</SelectItem>
+                      <SelectItem value="Trans Nzoia">Trans Nzoia</SelectItem>
+                      <SelectItem value="Turkana">Turkana</SelectItem>
+                      <SelectItem value="Uasin Gishu">Uasin Gishu</SelectItem>
+                      <SelectItem value="Vihiga">Vihiga</SelectItem>
+                      <SelectItem value="Wajir">Wajir</SelectItem>
+                      <SelectItem value="West Pokot">West Pokot</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="zipCode">ZIP Code *</Label>
+                  <Label htmlFor="zipCode">Postal Code</Label>
                   <Input
                     id="zipCode"
                     value={shippingInfo.zipCode}
                     onChange={(e) => handleInputChange('zipCode', e.target.value)}
-                    placeholder="10001"
+                    placeholder="00100"
                   />
                 </div>
                 <div>
@@ -242,9 +290,7 @@ const CheckoutPage = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="US">United States</SelectItem>
-                      <SelectItem value="CA">Canada</SelectItem>
-                      <SelectItem value="UK">United Kingdom</SelectItem>
+                      <SelectItem value="Kenya">Kenya</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
